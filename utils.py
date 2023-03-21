@@ -1,36 +1,38 @@
 import torch
+import torchmetrics
 from torch.utils.data import DataLoader
-from dataset import COCODataset, CustomDataset
 import matplotlib.pyplot as plt
 import torch.optim as optim
-from torchmetrics.classification import BinaryJaccardIndex, Dice, BinaryAccuracy
 import torchvision.transforms as T
+import os
+from dataset import COCODataset, CustomDataset
 
 
-def save_checkpoint(state, filename="result/checkpoint.pth.tar"):
-    print("=> Saving checkpoint")
-    torch.save(state, filename)
+def save_checkpoint(string, state, directory):
+    print(string)
+    torch.save(state, "".join([directory, "model.pth.tar"]))
 
 
-def load_checkpoint(checkpoint, model):
+def load_checkpoint(checkpoint, model, optimizer):
     print("=> Loading checkpoint")
+    model.load_state_dict(checkpoint["state_dict"])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    return checkpoint['start'], checkpoint['max_accuracy'], checkpoint['count']
+
+
+def create_directory_if_does_not_exist(check_dir, w_dir):
+    if not os.path.exists(check_dir):
+        os.makedirs(check_dir)
+    if not os.path.exists(w_dir):
+        os.makedirs(w_dir)
+
+
+def load_best_model(checkpoint, model):
+    print("=> Loading best model")
     model.load_state_dict(checkpoint["state_dict"])
 
 
-def get_loaders(train_dir, test_dir, batch_size, num_workers, pin_memory):
-    train_ds = COCODataset(
-        img_path=train_dir,
-        dataType='train'
-    )
-
-    train_loader = DataLoader(
-        train_ds,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        pin_memory=pin_memory,
-        shuffle=True,
-    )
-
+def get_loaders(train_dir, test_dir, batch_size, num_workers, training=True):
     test_ds = COCODataset(
         img_path=test_dir,
         dataType='val'
@@ -40,54 +42,78 @@ def get_loaders(train_dir, test_dir, batch_size, num_workers, pin_memory):
         test_ds,
         batch_size=batch_size,
         num_workers=num_workers,
-        pin_memory=pin_memory,
+        pin_memory=True,
         shuffle=False,
+        persistent_workers=True,
     )
-    return train_loader, test_loader
+
+    if training:
+        train_ds = COCODataset(
+            img_path=train_dir,
+            dataType='train'
+        )
+
+        train_loader = DataLoader(
+            train_ds,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            pin_memory=True,
+            shuffle=True,
+            persistent_workers=True,
+        )
+        return train_loader, test_loader
+
+    return test_loader
 
 
-def check_accuracy(loader, model, loss_fn, device):
-    running_loss = 0
-    dice_score = 0
-    IoU = BinaryJaccardIndex()
-    # dice_score = Dice()
-    accuracy = BinaryAccuracy()
+def metrics(wb, device):
+    metric_collection = torchmetrics.MetricCollection([
+        torchmetrics.classification.BinaryAccuracy().to(device=device),
+        torchmetrics.classification.BinaryJaccardIndex().to(device=device),
+        torchmetrics.classification.Dice().to(device=device),
+    ])
+    wb.define_metric("test_loss", summary="min")
+    wb.define_metric("test_accuracy", summary="max")
+    wb.define_metric("test_dice", summary="max")
+    wb.define_metric("test_iou", summary="max")
+    wb.define_metric("dice_epoch")
+    wb.define_metric("iou_epoch")
+    return metric_collection
+
+
+def eval_fn(loader, model, criterion, metric_collection, device):
     model.eval()
+    running_loss = 0
 
     with torch.no_grad():
         for data, target in loader:
             data = data.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True)
-            prediction = torch.sigmoid(model(data))
-            loss = loss_fn(prediction, target)
+            prediction = model(data)
+            loss = criterion(prediction, target)
             running_loss += loss.item()
             prediction = (prediction > 0.5).float()
-            dice_score += ((2 * (prediction * target).sum()) / ((prediction + target).sum() + 1e-8)).detach().cpu()
-            IoU(prediction.detach().cpu(), target.detach().cpu())
-            accuracy(prediction.detach().cpu(), target.int().detach().cpu())
-            # dice_score(prediction.detach().cpu(), target.int().detach().cpu())
+            metric_collection(prediction, target.int())
 
     loss = running_loss / len(loader)
-    dice_score = dice_score / len(loader)
-    iou = IoU.compute()
-    accu = accuracy.compute() * 100
-    # dice = dice_score.compute()
-    print(f"Got on test set --> Dice score: {dice_score:.6f}, IoU: {iou:.6f} Accuracy: {accu:.3f} and Loss: {loss:.3f}")
-    IoU.reset()
-    accuracy.reset()
-    # dice_score.reset()
-    model.train()
-    return loss, dice_score
+    accuracy = metric_collection['BinaryAccuracy'].compute().cpu() * 100
+    dice = metric_collection['BinaryJaccardIndex'].compute().cpu()
+    iou = metric_collection['Dice'].compute().cpu()
+
+    print(f"Got on test set --> Dice score: {dice:.6f}, IoU: {iou:.6f}, Accuracy: {accuracy:.3f}, Loss: {loss:.3f}")
+
+    metric_collection.reset()
+    return loss, accuracy, dice, iou
 
 
 def save_plot(train_l, train_a, test_l, test_a):
     plt.plot(train_a, '-')
     plt.plot(test_a, '-')
     plt.xlabel('epoch')
-    plt.ylabel('dice score')
+    plt.ylabel('accuracy')
     plt.legend(['Train', 'Valid'])
-    plt.title('Train vs Valid Dice Score')
-    plt.savefig('result/dice')
+    plt.title('Train vs Valid accuracy')
+    plt.savefig('result/accuracy')
     plt.close()
 
     plt.plot(train_l, '-')
@@ -98,6 +124,39 @@ def save_plot(train_l, train_a, test_l, test_a):
     plt.title('Train vs Valid Losses')
     plt.savefig('result/losses')
     plt.close()
+
+
+class EarlyStopping:
+    def __init__(self, mod, patience, count=None, baseline=None):
+        self.patience = patience
+        self.count = patience if count is None else count
+        if mod == 'max':
+            self.baseline = 0
+            self.operation = self.max
+        if mod == 'min':
+            self.baseline = baseline
+            self.operation = self.min
+
+    def max(self, monitored_value):
+        if monitored_value > self.baseline:
+            self.baseline = monitored_value
+            self.count = self.patience
+            return True
+        else:
+            self.count -= 1
+            return False
+
+    def min(self, monitored_value):
+        if monitored_value < self.baseline:
+            self.baseline = monitored_value
+            self.count = self.patience
+            return True
+        else:
+            self.count -= 1
+            return False
+
+    def __call__(self, monitored_value):
+        return self.operation(monitored_value)
 
 
 class Lion(optim.Optimizer):

@@ -1,110 +1,160 @@
 import sys
-
 import torch
 import torch.nn as nn
-import torch.optim as optim
+import wandb
 from tqdm import tqdm
 from model import UNet
-from utils import (
-    get_loaders,
-    save_checkpoint,
-    load_checkpoint,
-    check_accuracy,
-    save_plot,
-    Lion)
-
-# Hyperparameters and other settings
-LEARNING_RATE = 1e-6  # 1e-5
-MOMENTUM = 0.9
-WEIGHT_DECAY = 1e-2
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-BATCH_SIZE = 64
-NUM_EPOCHS = 2000
-PATIENCE = 20
-NUM_WORKERS = 8
-PIN_MEMORY = True
-LOAD_MODEL = True
-TRAIN_DIR = "COCOdataset2017/annotations/instances_train2017.json" # "COCOdataset2017/annotations/instances_train2017.json"  'Dataset/train/images'
-TEST_DIR = "COCOdataset2017/annotations/instances_val2017.json" # "COCOdataset2017/annotations/instances_val2017.json"     'Dataset/val/images'
-WEIGHT_DIR = "result/v1.0/checkpoint.pth.tar"
+from utils import (get_loaders, save_checkpoint, load_checkpoint,
+                   load_best_model, metrics, eval_fn,
+                   create_directory_if_does_not_exist, EarlyStopping, Lion)
 
 
-def train_fn(epoch, loader, model, optimizer, scheduler, loss_fn, scaler):
+def train_fn(epoch, loader, model, optimizer, scheduler, criterion, scaler, metric_collection, device):
     model.train()
-    loop = tqdm(loader)
-    loop.set_description(f"Epoch {epoch}", refresh=True)
-
     running_loss = 0
-    dice_score = 0
 
-    for batch_idx, (data, target) in enumerate(loop):
-        data = data.to(DEVICE, non_blocking=True)
-        target = target.to(DEVICE, non_blocking=True)
+    for (data, target) in tqdm(loader, desc=f"Epoch {epoch + 1}"):
+        data = data.to(device, non_blocking=True)
+        target = target.to(device, non_blocking=True)
 
         # forward
         with torch.cuda.amp.autocast():
             prediction = model(data)
-            loss = loss_fn(prediction, target)
+            loss = criterion(prediction, target)
 
         # backward
-        optimizer.zero_grad(set_to_none=True)
+        optimizer.zero_grad()
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
         scheduler.step()
         running_loss += loss.item()
 
-        # dice score
+        # metrics
         prediction = (prediction > 0.5).float()
-        dice_score += ((2 * (prediction * target).sum()) / ((prediction + target).sum() + 1e-8)).detach().cpu()
+        metric_collection(prediction, target.int())
 
-    loop.close()
-    train_loss = running_loss / len(loop)
-    train_dice_score = dice_score / len(loader)
+    train_loss = running_loss / len(loader)
+    train_accuracy = metric_collection['BinaryAccuracy'].compute().cpu() * 100
+    train_dice = metric_collection['BinaryJaccardIndex'].compute().cpu()
+    train_iou = metric_collection['Dice'].compute().cpu()
 
-    return train_loss, train_dice_score
+    metric_collection.reset()
+
+    return train_loss, train_accuracy, train_dice, train_iou
 
 
-def main():
-    model = UNet(in_channels=3, out_channels=1).to(DEVICE)
-    if LOAD_MODEL:
-        load_checkpoint(torch.load(WEIGHT_DIR), model)
-    # optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
-    optimizer = Lion(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
-    loss_fn = nn.BCEWithLogitsLoss()
+def main(wb, train_dir, test_dir, checkpoint_dir, weight_dir, device, num_workers):
+    model = UNet(in_channels=wb.config['in_channels'], out_channels=wb.config['n_class']).to(device)
+
+    optimizer = Lion(model.parameters(), lr=wb.config['learning_rate'], weight_decay=wb.config['weight_decay'])
+    criterion = nn.BCEWithLogitsLoss()
     scaler = torch.cuda.amp.GradScaler()
-    train_loader, test_loader = get_loaders(TRAIN_DIR, TEST_DIR, BATCH_SIZE, NUM_WORKERS, PIN_MEMORY)
+    metric_collection = metrics(wb, device)
+
+    if wb.config['evaluation']:
+        load_best_model(torch.load(weight_dir), model)
+        test_loader = get_loaders(train_dir, test_dir, wb.config['batch_size'], num_workers, training=False)
+        eval_fn(test_loader, model, criterion, metric_collection, device)
+        sys.exit()
+
+    if wb.resumed:
+        start, monitored_value, count = load_checkpoint(torch.load(checkpoint_dir), model, optimizer)
+        patience = EarlyStopping('max', wb.config['patience'], count, monitored_value)
+
+    else:
+        start = 0
+        patience = EarlyStopping('max', wb.config['patience'])
+
+    train_loader, test_loader = get_loaders(train_dir, test_dir, wb.config['batch_size'], num_workers)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
-                                                    max_lr=1e-4,
+                                                    max_lr=wb.config['max_lr'],
                                                     steps_per_epoch=len(train_loader),
-                                                    epochs=NUM_EPOCHS)
-    train_l, train_d, test_l, test_d = [], [], [], []
-    patience = PATIENCE
-    max_test_dice = 0
-    for epoch in range(NUM_EPOCHS):
-        # train_loss, train_dice = train_fn(epoch, train_loader, model, optimizer, scheduler, loss_fn, scaler)
-        # check accuracy
-        test_loss, test_dice = check_accuracy(test_loader, model, loss_fn, device=DEVICE)
-        # train_l.append(train_loss)
-        # train_d.append(train_dice)
-        test_l.append(test_loss)
-        test_d.append(test_dice)
-        # save model
-        if test_dice > max_test_dice:
-            max_test_dice = test_dice
-            patience = PATIENCE
-            checkpoint = {
-                "state_dict": model.state_dict(),
-                "optimizer": optimizer.state_dict(),
-            }
-            #save_checkpoint(checkpoint)
-        if patience == 0:
+                                                    epochs=wb.config['num_epochs'] - start)
+
+    wb.watch(model, log="all", log_graph=True)
+    # nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+
+    for epoch in range(start, wb.config['num_epochs']):
+        train_loss, train_accuracy, train_dice, train_iou = train_fn(epoch, train_loader, model, optimizer, scheduler,
+                                                                     criterion, scaler,
+                                                                     metric_collection, device)
+
+        test_loss, test_accuracy, test_dice, test_iou = eval_fn(test_loader, model, criterion, metric_collection,
+                                                                device)
+
+        wb.log({"train_loss": train_loss,
+                "train_accuracy": train_accuracy,
+                "train_dice": train_dice,
+                "train_iou": train_iou,
+                'test_loss': test_loss,
+                'test_accuracy': test_accuracy,
+                'test_dice': test_dice,
+                'test_iou': test_iou,
+                })
+
+        # save best model
+        if patience(test_iou):
+            wb.log({
+                "dice_epoch": epoch + 1,
+                "iou_epoch": epoch + 1,
+            })
+            checkpoint = {"state_dict": model.state_dict()}
+            save_checkpoint("=> Best Model found ! Don't Stop Me Now", checkpoint, weight_dir)
+
+        # save checkpoint
+        checkpoint = {
+            'start': epoch + 1,
+            "state_dict": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "max_accuracy": getattr(patience, 'baseline'),
+            "count": getattr(patience, 'count'),
+        }
+        save_checkpoint("=> Saving checkpoint", checkpoint, checkpoint_dir)
+        # early stopping
+        if getattr(patience, 'count') == 0:
+            print("=> My Patience is Finished ! It's Time to Stop this Shit")
             break
-        patience -= 1
-    save_plot(train_l, train_d, test_l, test_d)
+
     sys.exit()
 
 
 if __name__ == "__main__":
-    torch.backends.cudnn.benchmark = True
-    main()
+    wab = wandb.init(
+        # set the wandb project where this run will be logged
+        project="Efficient Unet",
+        # group='Experiment',
+        tags=[],
+        resume=False,
+        name='experiment-11',
+        config={
+            # model parameters
+            "architecture": "Unet",
+            'in_channels': 3,
+            'n_class': 1,
+
+            # datasets
+            "dataset": "COCO Dataset 2017",
+
+            # hyperparameters
+            "learning_rate": 1e-4,
+            "batch_size": 64,
+            "optimizer": 'Lion',
+            "weight_decay": 1e-2,
+            "scheduler": "One Cycle Learning",
+            "max_lr": 1e-4,
+            "num_epochs": 10,
+            "patience": 20,
+
+            # run type
+            "evaluation": False,
+        })
+    # Local parameters
+    check_dir = ''.join(["checkpoint/", wab.name, "/"])
+    w_dir = ''.join(["result/", wab.name, "/"])
+    train = "COCOdataset2017/annotations/instances_train2017.json"  # 'Dataset/train/images'
+    test = "COCOdataset2017/annotations/instances_val2017.json"  # 'Dataset/val/images'
+    create_directory_if_does_not_exist(check_dir, w_dir)
+    dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    n_workers = 8
+    main(wab, train, test, check_dir, w_dir, dev, n_workers)

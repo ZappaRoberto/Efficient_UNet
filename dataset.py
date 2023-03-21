@@ -1,22 +1,15 @@
 import os
 import torch
-from matplotlib import pyplot as plt
-from torchvision.io import read_image, ImageReadMode
 from torch.utils.data import Dataset
 from pycocotools.coco import COCO
 import numpy as np
-import skimage
 from PIL import Image
 import torchvision.transforms as T
-from skimage.transform import resize
-import torchvision.transforms.functional as F
-import h5py
 import albumentations as A
-import albumentations.pytorch.transforms as AT
 import random
 
-# TODO: hdf5 of the images for speed up loading
-# TODO: optimize what it can be optimized
+
+# TODO: numpy memmap of the images for speed up loading
 
 
 class CustomDataset(Dataset):
@@ -95,10 +88,9 @@ class COCODataset(Dataset):
         self.catIDs = self.coco.getCatIds()
         self.imgIds = self.coco.getImgIds()
         self.dataType = dataType
-        # self.file = h5py.File('COCOdataset2017/images/{}'.format(self.dataType), 'r')
         self.aug = A.Compose([
-            A.LongestMaxSize(max_size=224, interpolation=0, p=1),
-            A.PadIfNeeded(min_height=224, min_width=224, p=1),
+            A.LongestMaxSize(max_size=1280, interpolation=0, p=1),
+            A.PadIfNeeded(min_height=720, min_width=1280, p=1),
             A.OneOf([
                 A.CoarseDropout(max_holes=random.randint(1, 15), max_height=random.randint(1, 8),
                                 max_width=random.randint(1, 8), p=0.5),
@@ -136,7 +128,7 @@ class COCODataset(Dataset):
         ], p=1)
         self.transform = T.Compose([
             T.ToTensor(),
-            T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            T.Normalize((0.471, 0.448, 0.408), (0.234, 0.239, 0.242)),
         ])
         self.val = A.Compose([
             A.LongestMaxSize(max_size=224, interpolation=0, p=1),
@@ -153,7 +145,6 @@ class COCODataset(Dataset):
         mask = np.zeros((img['height'], img['width']))
         for i in range(len(anns)):
             mask = np.maximum(self.coco.annToMask(anns[i]), mask)
-        # input = self.file['images'][index, :, :]
         I = np.array(Image.open('COCOdataset2017/images/{}/{}'.format(self.dataType, img['file_name'])).convert('RGB'))
 
         if self.dataType == 'val':
@@ -166,6 +157,7 @@ class COCODataset(Dataset):
 
         mask = torch.from_numpy(mask).unsqueeze(dim=0)
         image = self.transform(image)
+
         # example = T.ToPILImage()(mask)
         # example.show()
         return image, mask
