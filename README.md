@@ -7,21 +7,18 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-VDCNN is a neural network that use deep architectures of many convolutional layers to approach [Text Classification](https://en.wikipedia.org/wiki/Document_classification) and [Sentiment Analysis](https://en.wikipedia.org/wiki/Sentiment_analysis) using up to 49 layers.
+Efficent Unet (EUnet) is a neural network that improve the original U-Net architectures to approach [Semantic Segmentation](https://en.wikipedia.org/wiki/Document_classification) in real time (>= 60 FPS) on low computing power hardware.
 You could read the original paper at the following [link](https://aclanthology.org/E17-1104/).
-This repository is a personal implementation of this paper using [PyTorch 1.13](https://pytorch.org/). 
 
 
 ## Table Of Content
 
 - [Architecture Analysis](#Architecture-Analysis)
 - [Dataset](#Dataset)
-    - [Yahoo! Answer topic classification](#Yahoo!-Answer-topic-classification)
-    - [Amazon Reviews](#Amazon-Reviews)
+    - [COCO Semantic Segmentation](#COCO-Semantic-Segmentation)
+    - [FSACOCO 🤫](#FSACOCO-🤫)
 - [Training](#Training)
 - [Result Analysis](#Result-Analysis)
-    - [Text Classification](#Text-Classification)
-    - [Sentiment Analysis](#Sentiment-Analysis)
 - [How to use](#How-to-use)
 
 
