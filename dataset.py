@@ -89,8 +89,8 @@ class COCODataset(Dataset):
         self.imgIds = self.coco.getImgIds()
         self.dataType = dataType
         self.aug = A.Compose([
-            A.LongestMaxSize(max_size=1280, interpolation=0, p=1),
-            A.PadIfNeeded(min_height=720, min_width=1280, p=1),
+            A.LongestMaxSize(max_size=224, interpolation=0, p=1),
+            A.PadIfNeeded(min_height=224, min_width=224, p=1),
             A.OneOf([
                 A.CoarseDropout(max_holes=random.randint(1, 15), max_height=random.randint(1, 8),
                                 max_width=random.randint(1, 8), p=0.5),

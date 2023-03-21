@@ -126,7 +126,7 @@ if __name__ == "__main__":
         # group='Experiment',
         tags=[],
         resume=False,
-        name='experiment-11',
+        name='version-1.0',
         config={
             # model parameters
             "architecture": "Unet",
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             "weight_decay": 1e-2,
             "scheduler": "One Cycle Learning",
             "max_lr": 1e-4,
-            "num_epochs": 10,
+            "num_epochs": 1000,
             "patience": 20,
 
             # run type
@@ -156,5 +156,5 @@ if __name__ == "__main__":
     test = "COCOdataset2017/annotations/instances_val2017.json"  # 'Dataset/val/images'
     create_directory_if_does_not_exist(check_dir, w_dir)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-    n_workers = 8
+    n_workers = 5
     main(wab, train, test, check_dir, w_dir, dev, n_workers)
