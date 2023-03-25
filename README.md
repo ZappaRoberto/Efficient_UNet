@@ -15,7 +15,7 @@ Efficent Unet (EUnet) is a improved version of the original U-Net architectures 
 - [Architecture Analysis](#Architecture-Analysis)
 - [Dataset](#Dataset)
     - [COCO Semantic Segmentation](#COCO-Semantic-Segmentation)
-    - [FSACOCO](#FSACOCO)
+    - [FSCOCO](FSACOCO)
 - [Training](#Training)
 - [Result Analysis](#Result-Analysis)
 - [Limitation and further improvement](#Limitation-and-further-improvement)
@@ -35,28 +35,17 @@ The Architecture consists of two building blocks: Downblock and Upblock.
 
 ## Dataset
 
-The dataset used for the training part are the [Yahoo! Answers Topic Classification](https://www.kaggle.com/datasets/b78db332b73c8b0caf9bd02e2f390bdffc75460ea6aaaee90d9c4bd6af30cad2) and a subset of [Amazon review data](https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/) that can be downloaded [here](https://drive.google.com/file/d/0Bz8a_Dbh9QhbZVhsUnRWRDhETzA/view?usp=share_link&resourcekey=0-Rp0ynafmZGZ5MflGmvwLGg). The vocabolary used is the same used in the paper: **"abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:’"/|_#$%^&*~‘+=<>()[]{} "**. I choose to use 0 as a value for padding and 69 as a value for unknown token. All this datasets are maneged by **`Dataset class`** inside dataset.py file. 
+The dataset used for the training part are the [COCO Semantic Segmentation](https://cocodataset.org/#download) and [FSCOCO](https://www.fsoco-dataset.com/). 
 
 
 ### COCO Semantic Segmentation
 
-The Yahoo! Answers topic classification dataset is constructed using the 10 largest main categories. Each class contains 140000 training samples and 6000 testing samples. Therefore, the total number of training samples is 1400000, and testing samples are 60000. The categories are:
-
-* Society & Culture
-* Science & Mathematics
-* Health
-* Education & Reference
-* Computers & Internet
-* Sports
-* Business & Finance
-* Entertainment & Music
-* Family & Relationships
-* Politics & Government
+asjfbakijsfbkasjfb
 
 
-### FSACOCO
+### [FSCOCO](https://www.fsoco-dataset.com/)
 
-The Amazon Reviews dataset is constructed using 5 categories (star ratings).
+asdfohifafbi
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
 
