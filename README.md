@@ -15,9 +15,10 @@ Efficent Unet (EUnet) is a improved version of the original U-Net architectures 
 - [Architecture Analysis](#Architecture-Analysis)
 - [Dataset](#Dataset)
     - [COCO Semantic Segmentation](#COCO-Semantic-Segmentation)
-    - [FSACOCO 🤫](#FSACOCO-🤫)
+    - [FSACOCO](#FSACOCO)
 - [Training](#Training)
 - [Result Analysis](#Result-Analysis)
+- [Limitation and further improvement](#Limitation-and-further-improvement)
 
 
 ## Architecture Analysis
@@ -28,7 +29,7 @@ The overall architecture of this network is shown in the following figure:
 </p>
 
 The Architecture consists of two building blocks: Downblock and Upblock.
-- The Downblock uses an [SPD-Conv](https://github.com/LabSAINT/SPD-Conv) pooling layer, followed by two depth-wise convolutions and an [LKA](https://arxiv.org/abs/2202.09741) attention layer.<br/>
+- The Downblock uses an [SPD-Conv](https://github.com/LabSAINT/SPD-Conv) pooling layer, followed by two depthwise separable convolutions and an [LKA](https://arxiv.org/abs/2202.09741) attention layer.<br/>
 - The Upblock is similar, except that a ConvTranspose is used to increase the resolution instead of a pooling layer. In addition, the in_channels are managed to enable concatenation of the skip connection without the need for cropping.
 
 
@@ -37,7 +38,7 @@ The Architecture consists of two building blocks: Downblock and Upblock.
 The dataset used for the training part are the [Yahoo! Answers Topic Classification](https://www.kaggle.com/datasets/b78db332b73c8b0caf9bd02e2f390bdffc75460ea6aaaee90d9c4bd6af30cad2) and a subset of [Amazon review data](https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/) that can be downloaded [here](https://drive.google.com/file/d/0Bz8a_Dbh9QhbZVhsUnRWRDhETzA/view?usp=share_link&resourcekey=0-Rp0ynafmZGZ5MflGmvwLGg). The vocabolary used is the same used in the paper: **"abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:’"/|_#$%^&*~‘+=<>()[]{} "**. I choose to use 0 as a value for padding and 69 as a value for unknown token. All this datasets are maneged by **`Dataset class`** inside dataset.py file. 
 
 
-### Yahoo! Answer topic classification
+### COCO Semantic Segmentation
 
 The Yahoo! Answers topic classification dataset is constructed using the 10 largest main categories. Each class contains 140000 training samples and 6000 testing samples. Therefore, the total number of training samples is 1400000, and testing samples are 60000. The categories are:
 
@@ -53,7 +54,7 @@ The Yahoo! Answers topic classification dataset is constructed using the 10 larg
 * Politics & Government
 
 
-### Amazon Reviews
+### FSACOCO
 
 The Amazon Reviews dataset is constructed using 5 categories (star ratings).
 
@@ -143,7 +144,7 @@ For computational limitation I trained the models only with depth 9. the result 
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
 
-## How to use
+## Limitation and further improvement
 
 After training run main.py file changing variable **`WEIGHT_DIR`** with the local directory where the weight are saved
 
