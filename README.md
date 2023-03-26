@@ -84,6 +84,12 @@ I compare my result with the SOTA networks that can be founded [here](https://pa
 |    EUnet        |  2023  |      **16M**       |   64.7  |
 
 
+### FSCOCO
+
+|     Networks    |  Year  |  N Parameters  |   IoU   |   Dice Score   |
+|  :------------: | :----: | :------------: |  :----: |  :----------:  |
+|    **EUnet**    |**2023**|    **16M**     | **?**|    **90.7**    |
+
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
 
