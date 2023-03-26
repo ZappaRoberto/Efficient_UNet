@@ -95,9 +95,10 @@ I compare my result with the SOTA networks that can be founded [here](https://pa
 
 ## Limitation and further improvement
 
-Try different normalization layer like groupnorm or layernorm
-Try to use depthwise conv in spd conv
-Try newer verion of LKA
+Try different normalization layer like groupnorm or layernorm <br/>
+Try to use depthwise conv in spd conv <br/>
+Try newer verion of LKA <br/>
+Try add batchnorm + activation before attention
 
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
