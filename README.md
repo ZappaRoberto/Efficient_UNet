@@ -40,7 +40,7 @@ The dataset used for the training part are the [COCO Semantic Segmentation](http
 
 ### COCO Semantic Segmentation
 
-asjfbakijsfbkasjfb
+COCO 2017 dataset is made by 123k images already splitted in 118K for training and 5K for test
 
 
 ### FSCOCO
