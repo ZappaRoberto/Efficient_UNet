@@ -40,73 +40,28 @@ The dataset used for the training part are the [COCO Semantic Segmentation](http
 
 ### COCO Semantic Segmentation
 
-COCO 2017 dataset is made by 123k images already splitted in 118K for training and 5K for test
+COCO 2017 dataset is made by 123k images already splitted in 118K for training and 5K for testing
 
 
 ### FSCOCO
 
-asdfohifafbi
+FSCOCO segmentation dataset consist in 1516 images with the relative mask in Supervisely format. I use 20% of the dataset for testing and 80% for training. 
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
 
 ## Training
 
-> **Warning**
-> 
-> Even if it can be choosen the device between cpu or GPU, I used and tested the training part only with GPU.
-
-First things first, at the beginning of train.py file there are a some useful global variable that manage the key settings of the training.
-
-```python
-
-LEARNING_RATE = 0.01
-MOMENTUM = 0.9
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-BATCH_SIZE = 128
-MAX_LENGTH = 1024
-NUM_EPOCHS = 1
-PATIENCE = 40
-NUM_WORKERS = 4
-PIN_MEMORY = True
-LOAD_MODEL = False
-TRAIN_DIR = "dataset/amazon/train.csv"
-TEST_DIR = "dataset/amazon/test.csv"
-```
-
-> **Note**
-> 
-> Change **`TRAIN_DIR`** and **`TEST_DIR`** with your datasets local position.
-
-The train_fn function is build to run one epoch and return the average loss and accuracy of the epoch.
-
-```python
-
-def train_fn(epoch, loader, model, optimizer, loss_fn, scaler):
-    # a bunch of code
-    return train_loss, train_accuracy
-```
-
-The main function is build to inizialize and manage the training part until the end.
-
-```python
-
-def main():
-    model = VDCNN(depth=9, n_classes=5, want_shortcut=True, pool_type='vgg').to(DEVICE)
-    # training settings
-    for epoch in range(NUM_EPOCHS):
-        # run 1 epoch
-        # check accuracy
-        # save model
-        # manage patience for early stopping
-    # save plot
-    sys.exit()
-```
-
-> **Note**
-> 
-> Remember to change **`n_classes`** from 5 to 10 if you use Amazon dataset or Yahoo! Answer dataset.
-
-**`get_loaders`**, **`save_checkpoint`**, **`load_checkpoint`**, **`check_accuracy`** and **`save_plot`**  are function used inside tran.py that can be finded inside utils.py.
+The training of the network could be splitted in two part: the first one a pre-training phase and the second one the finethuning of the model.
+for all the phase I use the following hyperparameters and settings:</br>
+- learning_rate: 1e-4,
+- batch_size: 64,
+- optimizer: [Lion](https://arxiv.org/abs/2302.06675),
+- weight_decay: 1e-2,
+- scheduler: One Cycle Learning with a max learning rate of 1e-4,
+- num_epochs: 1000,
+- patience: 20,
+</br>
+I run all my experiments on my personal computer equipped by an RTX 4090 and i7-13700k with 32gb of RAM
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
 
