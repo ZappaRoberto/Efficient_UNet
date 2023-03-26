@@ -60,8 +60,8 @@ The network training process can be divided into two parts: the first phase invo
 - scheduler: One Cycle Learning with a max learning rate of 1e-4,
 - num_epochs: 1000,
 - patience: 20,
-</br>
-I utilize the [dice score](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) and [intersect over union](https://en.wikipedia.org/wiki/Jaccard_index) as the primary metrics to measure the improvement of the networks. All the metrics employed in this study were obtained from [TorchMetrics](https://torchmetrics.readthedocs.io/en/latest/), as they are extensively tested and reliable.
+
+I utilize the [dice score](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) and [intersect over union](https://en.wikipedia.org/wiki/Jaccard_index) as the primary metrics to measure the improvement of the networks. All the metrics employed in this study were obtained from [TorchMetrics](https://torchmetrics.readthedocs.io/en/latest), as they are extensively tested and reliable.
 </br>
 I run all the experiments on my personal computer equipped by an RTX 4090 and i7-13700k with 32gb of RAM
 
