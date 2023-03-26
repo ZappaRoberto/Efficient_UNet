@@ -57,7 +57,7 @@ The network training process can be divided into two parts: the first phase invo
 - batch_size: 64,
 - optimizer: [Lion](https://arxiv.org/abs/2302.06675),
 - weight_decay: 1e-2,
-- scheduler: One Cycle Learning with a max learning rate of 1e-4,
+- scheduler: [One Cycle Learning](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.OneCycleLR.html) with a max learning rate of 1e-4,
 - num_epochs: 1000,
 - patience: 20,
 
@@ -95,6 +95,9 @@ I compare my result with the SOTA networks that can be founded [here](https://pa
 
 ## Limitation and further improvement
 
-After training run main.py file changing variable **`WEIGHT_DIR`** with the local directory where the weight are saved
+Try different normalization layer like groupnorm or layernorm
+Try to use depthwise conv in spd conv
+Try newer verion of LKA
+
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
