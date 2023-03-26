@@ -51,8 +51,8 @@ FSCOCO segmentation dataset consist in 1516 images with the relative mask in Sup
 
 ## Training
 
-The training of the network could be splitted in two part: the first one a pre-training phase and the second one the finethuning of the model.
-for all the phase I use the following hyperparameters and settings:</br>
+The network training process can be divided into two parts: the first phase involves pre-training, while the second phase involves fine-tuning of the model. For all phases, the following hyperparameters and settings were utilized:
+</br>
 - learning_rate: 1e-4,
 - batch_size: 64,
 - optimizer: [Lion](https://arxiv.org/abs/2302.06675),
@@ -61,30 +61,29 @@ for all the phase I use the following hyperparameters and settings:</br>
 - num_epochs: 1000,
 - patience: 20,
 </br>
-I run all my experiments on my personal computer equipped by an RTX 4090 and i7-13700k with 32gb of RAM
+I utilize the [dice score](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) and [intersect over union](https://en.wikipedia.org/wiki/Jaccard_index) as the primary metrics to measure the improvement of the networks. All the metrics employed in this study were obtained from [TorchMetrics](https://torchmetrics.readthedocs.io/en/latest/), as they are extensively tested and reliable.
+</br>
+I run all the experiments on my personal computer equipped by an RTX 4090 and i7-13700k with 32gb of RAM
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
 
 ## Result Analysis
 
-For computational limitation I trained the models only with depth 9. the result showed below are the test error of my implementation and paper implementation.
 
-### Text Classification
+### COCO 2017 Segmentation dataset
 
-|     Pool Type     |  My Result  | Paper Result |
-| :---------------: | :---------: | :----------: |
-| Convolution       |    32.57    |     28.10    |
-| KMaxPooling       |    28.92    |     28.24    |
-| MaxPooling        |    28.40    |     27.60    |
+I compare my result with the SOTA networks that can be founded [here](https://paperswithcode.com/sota/semantic-segmentation-on-coco-1)
+
+|     Networks    |  Year  |  N Parameters  |   IoU   |
+|  :------------: | :----: | :------------: |  :----: |
+|    OneFormer    |  2022  |      223M      |   **68.1**  |
+|    OneFormer    |  2022  |      219M      |   67.4  |
+|    Mask2Former  |  2021  |      216M      |   67.4  |
+|    MaskFormer   |  2021  |      212M      |   64.8  |
+|    SegCLIP      |  2022  |       ?        |   26.5  |
+|    EUnet        |  2023  |      **16M**       |   64.7  |
 
 
-### Sentiment Analysis
-
-|     Pool Type     |  My Result  | Paper Result |
-| :---------------: | :---------: | :----------: |
-| Convolution       |    40.35    |     38.52    |
-| KMaxPooling       |    38.58    |     39.19    |
-| MaxPooling        |    38.45    |     37.95    |
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
 
