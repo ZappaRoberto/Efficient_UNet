@@ -81,7 +81,7 @@ I compare my result with the SOTA networks that can be founded [here](https://pa
 |    Mask2Former  |  2021  |      216M      |   67.4  |
 |    MaskFormer   |  2021  |      212M      |   64.8  |
 |    SegCLIP      |  2022  |       ?        |   26.5  |
-|    EUnet        |  2023  |      **16M**       |   64.7  |
+|    EUnet        |  2023  |      **16M**       |   64.9  |
 
 
 ### FSCOCO
