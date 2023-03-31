@@ -74,6 +74,10 @@ I run all the experiments on my personal computer equipped by an RTX 4090 and i7
 
 I compare my result with the SOTA networks that can be founded [here](https://paperswithcode.com/sota/semantic-segmentation-on-coco-1)
 
+<p align="center">
+  <img src="https://github.com/ZappaRoberto/Efficent_Unet/blob/main/img/result.png" />
+</p>
+
 |     Networks    |  Year  |  N Parameters  |   IoU   |
 |  :------------: | :----: | :------------: |  :----: |
 |    OneFormer    |  2022  |      223M      |   **68.1**  |
