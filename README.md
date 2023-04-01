@@ -92,7 +92,7 @@ I compare my result with the SOTA networks that can be founded [here](https://pa
 
 
 <p align="center">
-  <img src="https://github.com/ZappaRoberto/Efficent_Unet/blob/main/img/result2.png" />
+  <img src="https://github.com/ZappaRoberto/Efficent_Unet/blob/main/img/result-2.png" />
 </p>
 
 |     Networks    |  Year  |  N Parameters  |   IoU   |   Dice Score   |
