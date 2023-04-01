@@ -80,14 +80,14 @@ class EfficientConvBlock(nn.Module):
             DPConv(in_channels, out_channels),
             nn.BatchNorm2d(out_channels),
             nn.Hardswish(),
-            DPConv(out_channels, out_channels, True),
+            DPConv(out_channels, out_channels),
+            nn.BatchNorm2d(out_channels),
         )
         self.hardswish = nn.Hardswish()
 
     def forward(self, x):
-        short = x
         out = self.sequential(x)
-        out = self.hardswish(short + out)
+        out = self.hardswish(out)
         return out
 
 

@@ -31,11 +31,7 @@ class CustomDataset(Dataset):
             A.CLAHE(p=0.5),
             A.FancyPCA(p=0.5),
             A.OneOf([
-                # A.ColorJitter(p=0.5),
                 A.RandomBrightnessContrast(p=0.5),
-                # A.HueSaturationValue(p=0.5),
-                # A.RandomGamma(p=0.5),
-                # A.Solarize(p=0.5)
             ], p=0.5),
             A.OneOf([
                 A.ISONoise(),
@@ -102,13 +98,7 @@ class COCODataset(Dataset):
             A.Rotate(limit=45, p=0.5),
             A.CLAHE(p=0.5),
             A.FancyPCA(p=0.5),
-            A.OneOf([
-                # A.ColorJitter(p=0.5),
-                A.RandomBrightnessContrast(p=0.5),
-                # A.HueSaturationValue(p=0.5),
-                # A.RandomGamma(p=0.5),
-                # A.Solarize(p=0.5)
-            ], p=0.5),
+            A.RandomBrightnessContrast(p=0.5),
             A.OneOf([
                 A.ISONoise(),
                 A.GaussNoise(),

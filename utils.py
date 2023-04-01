@@ -33,7 +33,7 @@ def load_best_model(checkpoint, model):
 
 
 def get_loaders(train_dir, test_dir, batch_size, num_workers, training=True):
-    test_ds = COCODataset(
+    test_ds = CustomDataset(
         img_path=test_dir,
         dataType='val'
     )
@@ -48,7 +48,7 @@ def get_loaders(train_dir, test_dir, batch_size, num_workers, training=True):
     )
 
     if training:
-        train_ds = COCODataset(
+        train_ds = CustomDataset(
             img_path=train_dir,
             dataType='train'
         )
@@ -96,9 +96,9 @@ def eval_fn(loader, model, criterion, metric_collection, device):
             metric_collection(prediction, target.int())
 
     loss = running_loss / len(loader)
-    accuracy = metric_collection['BinaryAccuracy'].compute().cpu() * 100
-    dice = metric_collection['BinaryJaccardIndex'].compute().cpu()
-    iou = metric_collection['Dice'].compute().cpu()
+    accuracy = metric_collection['BinaryAccuracy'].compute() * 100
+    dice = metric_collection['Dice'].compute()
+    iou = metric_collection['BinaryJaccardIndex'].compute()
 
     print(f"Got on test set --> Dice score: {dice:.6f}, IoU: {iou:.6f}, Accuracy: {accuracy:.3f}, Loss: {loss:.3f}")
 

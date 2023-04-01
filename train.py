@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import wandb
 from tqdm import tqdm
-from model import UNet
+from model2 import UNet
 from utils import (get_loaders, save_checkpoint, load_checkpoint,
                    load_best_model, metrics, eval_fn,
                    create_directory_if_does_not_exist, EarlyStopping, Lion)
@@ -28,16 +28,16 @@ def train_fn(epoch, loader, model, optimizer, scheduler, criterion, scaler, metr
         scaler.step(optimizer)
         scaler.update()
         scheduler.step()
-        running_loss += loss.item()
+        running_loss += loss.item() # .item porta il calcolo alla cpu, non riesco a farlo andare sulla GPU?
 
         # metrics
         prediction = (prediction > 0.5).float()
         metric_collection(prediction, target.int())
 
     train_loss = running_loss / len(loader)
-    train_accuracy = metric_collection['BinaryAccuracy'].compute().cpu() * 100
-    train_dice = metric_collection['BinaryJaccardIndex'].compute().cpu()
-    train_iou = metric_collection['Dice'].compute().cpu()
+    train_accuracy = metric_collection['BinaryAccuracy'].compute() * 100
+    train_dice = metric_collection['Dice'].compute()
+    train_iou = metric_collection['BinaryJaccardIndex'].compute()
 
     metric_collection.reset()
 
@@ -58,7 +58,12 @@ def main(wb, train_dir, test_dir, checkpoint_dir, weight_dir, device, num_worker
         eval_fn(test_loader, model, criterion, metric_collection, device)
         sys.exit()
 
-    if wb.resumed:
+    elif wb.config['transfer learning']:
+        load_best_model(torch.load(''.join(["result/", wb.config['base model'], "/model.pth.tar"])), model)
+        start = 0
+        patience = EarlyStopping('max', wb.config['patience'])
+
+    elif wb.resumed:
         start, monitored_value, count = load_checkpoint(torch.load(checkpoint_dir), model, optimizer)
         patience = EarlyStopping('max', wb.config['patience'], count, monitored_value)
 
@@ -91,6 +96,7 @@ def main(wb, train_dir, test_dir, checkpoint_dir, weight_dir, device, num_worker
                 'test_accuracy': test_accuracy,
                 'test_dice': test_dice,
                 'test_iou': test_iou,
+                'epoch': epoch + 1,
                 })
 
         # save best model
@@ -122,11 +128,11 @@ def main(wb, train_dir, test_dir, checkpoint_dir, weight_dir, device, num_worker
 if __name__ == "__main__":
     wab = wandb.init(
         # set the wandb project where this run will be logged
-        project="Efficient Unet",
+        project="Efficient Unet 2",
         # group='Experiment',
         tags=[],
         resume=False,
-        name='version-1.0',
+        name='FRT',
         config={
             # model parameters
             "architecture": "Unet",
@@ -134,7 +140,7 @@ if __name__ == "__main__":
             'n_class': 1,
 
             # datasets
-            "dataset": "COCO Dataset 2017",
+            "dataset": "FSCOCO",
 
             # hyperparameters
             "learning_rate": 1e-4,
@@ -148,13 +154,15 @@ if __name__ == "__main__":
 
             # run type
             "evaluation": False,
+            "transfer learning": True,
+            "base model": 'version-3.0'
         })
     # Local parameters
     check_dir = ''.join(["checkpoint/", wab.name, "/"])
     w_dir = ''.join(["result/", wab.name, "/"])
-    train = "COCOdataset2017/annotations/instances_train2017.json"  # 'Dataset/train/images'
-    test = "COCOdataset2017/annotations/instances_val2017.json"  # 'Dataset/val/images'
+    train = 'Dataset/train/images'   # "COCOdataset2017/annotations/instances_train2017.json"
+    test = 'Dataset/val/images'  # "COCOdataset2017/annotations/instances_val2017.json"
     create_directory_if_does_not_exist(check_dir, w_dir)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-    n_workers = 5
+    n_workers = 4
     main(wab, train, test, check_dir, w_dir, dev, n_workers)
