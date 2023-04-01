@@ -53,11 +53,11 @@ FSCOCO segmentation dataset consist in 1516 images with the relative mask in Sup
 
 The network training process can be divided into two parts: the first phase involves pre-training, while the second phase involves fine-tuning of the model. For all phases, the following hyperparameters and settings were utilized:
 </br>
-- learning_rate: 1e-4,
+- learning_rate: 1e-4 for COCO and 1e-5 for FSCOCO,
 - batch_size: 64,
 - optimizer: [Lion](https://arxiv.org/abs/2302.06675),
 - weight_decay: 1e-2,
-- scheduler: [One Cycle Learning](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.OneCycleLR.html) with a max learning rate of 1e-4,
+- scheduler: [One Cycle Learning](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.OneCycleLR.html) with a max learning rate of 1e-4 for COCO and 1e-5 for FSCOCO ,
 - num_epochs: 1000,
 - patience: 20,
 
