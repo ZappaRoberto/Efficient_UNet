@@ -2,12 +2,12 @@
     <img src="https://github.com/pytorch/pytorch/blob/master/docs/source/_static/img/pytorch-logo-dark.png" alt="Pytorch logo" title="Pytorch" align="right" height="80" />
 </a>
 
-# Efficent Unet
+# Efficient Unet
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-Efficent Unet (EUnet) is a improved version of the original [U-Net](https://arxiv.org/abs/1505.04597) architectures to approach [Semantic Segmentation](https://en.wikipedia.org/wiki/Image_segmentation) in real time (>= 60 FPS) on low computing power hardware with hight fedelity.
+Efficient Unet (EUnet) is a improved version of the original [U-Net](https://arxiv.org/abs/1505.04597) architectures to approach [Semantic Segmentation](https://en.wikipedia.org/wiki/Image_segmentation) in real time (>= 60 FPS) on low computing power hardware with hight fedelity.
 
 
 ## Table Of Content
