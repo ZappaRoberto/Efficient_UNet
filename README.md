@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-Efficient Unet (EUnet) is a improved version of the original [U-Net](https://arxiv.org/abs/1505.04597) architectures to approach [Semantic Segmentation](https://en.wikipedia.org/wiki/Image_segmentation) in real time (>= 60 FPS) on low computing power hardware with hight fedelity.
+Efficient Unet (EUnet) is a improved version of the original [U-Net](https://arxiv.org/abs/1505.04597) architectures to approach [Semantic Segmentation](https://en.wikipedia.org/wiki/Image_segmentation) in real time (>= 60 FPS) on low computing power hardware with high fidelity.
 
 
 ## Table Of Content
