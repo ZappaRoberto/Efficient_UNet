@@ -3,25 +3,29 @@ from PIL import Image
 import torch
 import torchvision.transforms as T
 import albumentations as A
-from model import UNet
+from model2 import UNet
 
 
-WEIGHT_DIR = "result/v2.0/checkpoint.pth.tar"
+WEIGHT_DIR = "result/FRT-1/model.pth.tar"
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 def prepareimage(img_path):
-    image = np.array(Image.open(img_path).convert('RGB'))
+    img = Image.open(img_path).convert('RGB')
+    image = np.array(img)
+
     aug = A.Compose([
-        A.LongestMaxSize(max_size=1280, interpolation=0, p=1),
-        A.PadIfNeeded(min_height=224, min_width=224, p=1),
+        A.LongestMaxSize(max_size=512, interpolation=0, p=1),
+        A.PadIfNeeded(min_height=344, min_width=344, p=1),
     ])
     augmented = aug(image=image)
     image = augmented['image']
     image = T.Compose([
         T.ToTensor(),
-        T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])(image)
+        T.Normalize((0.471, 0.448, 0.408), (0.234, 0.239, 0.242))])(image)
     image = image.unsqueeze(dim=0)
+    _, _, h, w = image.shape
+    img.resize([w, h]).show()
     print(image.shape)
     return image.to(DEVICE)
 
@@ -44,4 +48,4 @@ def main(img_path):
 
 
 if __name__ == "__main__":
-    main('Dataset/val/images/amz_00305.png')
+    main('Dataset/train/images/ff_00003.png')

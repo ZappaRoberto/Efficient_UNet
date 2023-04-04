@@ -59,6 +59,7 @@ def main(wb, train_dir, test_dir, checkpoint_dir, weight_dir, device, num_worker
         sys.exit()
 
     elif wb.config['transfer learning']:
+        print("=> Transfer Learning initialization")
         load_best_model(torch.load(''.join(["result/", wb.config['base model'], "/model.pth.tar"])), model)
         start = 0
         patience = EarlyStopping('max', wb.config['patience'])
@@ -132,7 +133,7 @@ if __name__ == "__main__":
         # group='Experiment',
         tags=[],
         resume=False,
-        name='FRT',
+        name='FRT-1',
         config={
             # model parameters
             "architecture": "Unet",
@@ -143,12 +144,12 @@ if __name__ == "__main__":
             "dataset": "FSCOCO",
 
             # hyperparameters
-            "learning_rate": 1e-4,
+            "learning_rate": 1e-5,
             "batch_size": 64,
             "optimizer": 'Lion',
             "weight_decay": 1e-2,
             "scheduler": "One Cycle Learning",
-            "max_lr": 1e-4,
+            "max_lr": 1e-5,
             "num_epochs": 1000,
             "patience": 20,
 

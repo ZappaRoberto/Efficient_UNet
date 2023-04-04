@@ -56,7 +56,8 @@ class CustomDataset(Dataset):
         ])
         self.normalize = T.Compose([
             T.ToTensor(),
-            T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            T.Normalize((0.471, 0.448, 0.408), (0.234, 0.239, 0.242))
+        ])
 
     def __len__(self):
         return len(self.list)
