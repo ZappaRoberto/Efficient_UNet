@@ -2,12 +2,12 @@
     <img src="https://github.com/pytorch/pytorch/blob/master/docs/source/_static/img/pytorch-logo-dark.png" alt="Pytorch logo" title="Pytorch" align="right" height="80" />
 </a>
 
-# Efficent Unet
+# Efficient UNet
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-Efficent Unet (EUnet) is a improved version of the original [U-Net](https://arxiv.org/abs/1505.04597) architectures to approach [Semantic Segmentation](https://en.wikipedia.org/wiki/Image_segmentation) in real time (>= 60 FPS) on low computing power hardware with hight fedelity.
+Efficient UNet (EUNet) is an improved version of the original [U-Net](https://arxiv.org/abs/1505.04597) architectures to approach [Semantic Segmentation](https://en.wikipedia.org/wiki/Image_segmentation) in real time (>= 60 FPS) on low computing power hardware with high fidelity.
 
 
 ## Table Of Content
@@ -53,11 +53,11 @@ FSCOCO segmentation dataset consist in 1516 images with the relative mask in Sup
 
 The network training process can be divided into two parts: the first phase involves pre-training, while the second phase involves fine-tuning of the model. For all phases, the following hyperparameters and settings were utilized:
 </br>
-- learning_rate: 1e-4,
+- learning_rate: 1e-4 for COCO and 1e-5 for FSCOCO,
 - batch_size: 64,
 - optimizer: [Lion](https://arxiv.org/abs/2302.06675),
 - weight_decay: 1e-2,
-- scheduler: [One Cycle Learning](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.OneCycleLR.html) with a max learning rate of 1e-4,
+- scheduler: [One Cycle Learning](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.OneCycleLR.html) with a max learning rate of 1e-4 for COCO and 1e-5 for FSCOCO ,
 - num_epochs: 1000,
 - patience: 20,
 
@@ -90,9 +90,14 @@ I compare my result with the SOTA networks that can be founded [here](https://pa
 
 ### FSCOCO
 
+
+<p align="center">
+  <img src="https://github.com/ZappaRoberto/Efficent_Unet/blob/main/img/result-2.png" />
+</p>
+
 |     Networks    |  Year  |  N Parameters  |   IoU   |   Dice Score   |
 |  :------------: | :----: | :------------: |  :----: |  :----------:  |
-|    **EUnet**    |**2023**|    **16M**     | **?**|    **90.7**    |
+|    **EUnet**    |**2023**|    **16M**     | **79.4**|    **88.5**    |
 
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
@@ -100,7 +105,7 @@ I compare my result with the SOTA networks that can be founded [here](https://pa
 ## Limitation and further improvement
 
 Try different normalization layer like groupnorm or layernorm <br/>
-Try newer verion of LKA <br/>
+Try newer version of LKA <br/>
 
 
 <div align="right">[ <a href="#Table-Of-Content">↑ to top ↑</a> ]</div>
