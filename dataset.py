@@ -77,26 +77,13 @@ class CustomDataset(Dataset):
         mask = torch.from_numpy(mask).unsqueeze(dim=0).float()
         image = self.normalize(image)
         return image, mask
-
-
-class COCODataset(Dataset):
-    def __init__(self, img_path, dataType):
-        self.coco = COCO(img_path)
-        self.catIDs = self.coco.getCatIds()
-        self.imgIds = self.coco.getImgIds()
-        self.dataType = dataType
-        self.aug = A.Compose([
-            A.LongestMaxSize(max_size=224, interpolation=0, p=1),
-            A.PadIfNeeded(min_height=224, min_width=224, p=1),
+'''
             A.OneOf([
                 A.CoarseDropout(max_holes=random.randint(1, 15), max_height=random.randint(1, 8),
                                 max_width=random.randint(1, 8), p=0.5),
                 A.MaskDropout(p=0.5),
                 # A.GridDropout(p=0.5),
                 A.RandomShadow(p=0.5)], p=0.5),
-            A.HorizontalFlip(p=0.5),
-            A.Perspective(p=0.5),
-            A.Rotate(limit=45, p=0.5),
             A.CLAHE(p=0.5),
             A.FancyPCA(p=0.5),
             A.RandomBrightnessContrast(p=0.5),
@@ -107,7 +94,6 @@ class COCODataset(Dataset):
             ], p=0.5),
             A.OneOf([
                 A.MotionBlur(p=0.5),
-                A.MedianBlur(p=0.5),
                 A.GlassBlur(p=0.5),
                 A.GaussianBlur(p=0.5),
                 A.Blur(p=0.5)], p=0.5),
@@ -116,13 +102,35 @@ class COCODataset(Dataset):
                 A.RandomFog(p=0.5),
                 A.RandomRain(p=0.5),
             ], p=0.5)
-        ], p=1)
+        '''
+
+class COCODataset(Dataset):
+    def __init__(self, img_path, dataType):
+        self.coco = COCO(img_path)
+        self.catIDs = self.coco.getCatIds()
+        self.imgIds = self.coco.getImgIds()
+        self.dataType = dataType
+        self.aug = A.Compose([
+            A.OneOf([
+                A.CropNonEmptyMaskIfExists(224, 224, p=0.5),  # version 4.3
+                A.Compose([
+                    A.LongestMaxSize(max_size=224, p=1),
+                    A.PadIfNeeded(min_height=224, min_width=224, p=1),
+                ], p=0.5)
+            ]),
+            A.HorizontalFlip(p=0.5),
+            A.Perspective(p=0.5),
+            # A.Rotate(limit=45, p=0.5),
+            A.VerticalFlip(p=0.5),  # version 4.3
+            A.Transpose(p=0.5),  # version 4.3
+            A.ShiftScaleRotate(p=0.5),  # version 4.3
+            ], p=1)
         self.transform = T.Compose([
             T.ToTensor(),
             T.Normalize((0.471, 0.448, 0.408), (0.234, 0.239, 0.242)),
         ])
         self.val = A.Compose([
-            A.LongestMaxSize(max_size=224, interpolation=0, p=1),
+            A.LongestMaxSize(max_size=224, p=1),
             A.PadIfNeeded(min_height=224, min_width=224, p=1),
         ])
 

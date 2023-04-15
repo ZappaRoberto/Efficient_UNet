@@ -33,7 +33,7 @@ def load_best_model(checkpoint, model):
 
 
 def get_loaders(train_dir, test_dir, batch_size, num_workers, training=True):
-    test_ds = CustomDataset(
+    test_ds = COCODataset(
         img_path=test_dir,
         dataType='val'
     )
@@ -48,7 +48,7 @@ def get_loaders(train_dir, test_dir, batch_size, num_workers, training=True):
     )
 
     if training:
-        train_ds = CustomDataset(
+        train_ds = COCODataset(
             img_path=train_dir,
             dataType='train'
         )

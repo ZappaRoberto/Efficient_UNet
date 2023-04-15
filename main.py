@@ -3,7 +3,7 @@ from PIL import Image
 import torch
 import torchvision.transforms as T
 import albumentations as A
-from model2 import UNet
+from model3 import UNet
 
 
 WEIGHT_DIR = "result/FRT-1/model.pth.tar"

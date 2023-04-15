@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import wandb
 from tqdm import tqdm
-from model2 import UNet
+from model4 import UNet
 from utils import (get_loaders, save_checkpoint, load_checkpoint,
                    load_best_model, metrics, eval_fn,
                    create_directory_if_does_not_exist, EarlyStopping, Lion)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         # group='Experiment',
         tags=[],
         resume=False,
-        name='FRT-1',
+        name='version-4.2',
         config={
             # model parameters
             "architecture": "Unet",
@@ -141,28 +141,28 @@ if __name__ == "__main__":
             'n_class': 1,
 
             # datasets
-            "dataset": "FSCOCO",
+            "dataset": "COCO without augmentation",
 
             # hyperparameters
-            "learning_rate": 1e-5,
+            "learning_rate": 1e-4,
             "batch_size": 64,
             "optimizer": 'Lion',
             "weight_decay": 1e-2,
             "scheduler": "One Cycle Learning",
-            "max_lr": 1e-5,
+            "max_lr": 1e-4,
             "num_epochs": 1000,
             "patience": 20,
 
             # run type
             "evaluation": False,
-            "transfer learning": True,
-            "base model": 'version-3.0'
+            "transfer learning": False,
+            "base model": '-'
         })
     # Local parameters
     check_dir = ''.join(["checkpoint/", wab.name, "/"])
     w_dir = ''.join(["result/", wab.name, "/"])
-    train = 'Dataset/train/images'   # "COCOdataset2017/annotations/instances_train2017.json"
-    test = 'Dataset/val/images'  # "COCOdataset2017/annotations/instances_val2017.json"
+    train = "COCOdataset2017/annotations/instances_train2017.json"   # 'Dataset/train/images'
+    test = "COCOdataset2017/annotations/instances_val2017.json"  # 'Dataset/val/images'
     create_directory_if_does_not_exist(check_dir, w_dir)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     n_workers = 4
